@@ -16,6 +16,7 @@ BuildRequires:	pkgconfig
 BuildRequires:  pkgconfig(libffi)
 BuildRequires:  expat-devel
 BuildRequires:  xz
+BuildRequires:  doxygen
 
 %description
 Wayland is a protocol for a compositor to talk to its clients as well
