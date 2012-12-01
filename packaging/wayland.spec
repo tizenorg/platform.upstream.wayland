@@ -1,6 +1,6 @@
 Name:		wayland
 %define lname	libwayland
-Version:	1.0.0
+Version:	1.0.2
 Release:	0
 Summary:	Wayland Compositor Infrastructure
 License:	MIT
