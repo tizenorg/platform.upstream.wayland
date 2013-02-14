@@ -1,10 +1,10 @@
 Name:		wayland
 %define lname	libwayland
-Version:	1.0.3
+Version:	1.0.4
 Release:	0
 Summary:	Wayland Compositor Infrastructure
 License:	MIT
-Group:		Development/Libraries/C and C++
+Group:		Graphics/Wayland Window System
 URL:		http://wayland.freedesktop.org/
 
 #Git-Clone:	git://anongit.freedesktop.org/wayland/wayland
@@ -27,7 +27,7 @@ The clients can be traditional applications, X servers (rootless or
 fullscreen) or other display servers.
 
 %package -n libwayland-client
-Group:		System/Libraries
+Group:		Graphics/Wayland Window System
 Summary:	Wayland core client library
 
 %description -n libwayland-client
@@ -39,7 +39,7 @@ The clients can be traditional applications, X servers (rootless or
 fullscreen) or other display servers.
 
 %package -n libwayland-cursor
-Group:		System/Libraries
+Group:		Graphics/Wayland Window System
 Summary:	Wayland cursor library
 
 %description -n libwayland-cursor
@@ -49,7 +49,7 @@ loads them directly into an shm pool making it easy for the clients
 to get buffer for each cursor image.
 
 %package -n libwayland-server
-Group:		System/Libraries
+Group:		Graphics/Wayland Window System
 Summary:	Wayland core server library
 
 %description -n libwayland-server
@@ -62,7 +62,7 @@ fullscreen) or other display servers.
 
 %package devel
 Summary:	Development files for the Wayland Compositor Infrastructure
-Group:		Development/Libraries/C and C++
+Group:		Development/Libraries
 Requires:	libwayland-client = %version
 Requires:	libwayland-cursor = %version
 Requires:	libwayland-server = %version
