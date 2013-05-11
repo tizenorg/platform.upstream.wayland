@@ -96,14 +96,17 @@ make %{?_smp_mflags}
 %postun -n libwayland-server -p /sbin/ldconfig
 
 %files -n libwayland-client
+%license COPYING
 %defattr(-,root,root)
 %_libdir/libwayland-client.so.0*
 
 %files -n libwayland-cursor
+%license COPYING
 %defattr(-,root,root)
 %_libdir/libwayland-cursor.so.0*
 
 %files -n libwayland-server
+%license COPYING
 %defattr(-,root,root)
 %_libdir/libwayland-server.so.0*
 
