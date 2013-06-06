@@ -1,5 +1,5 @@
 Name:		wayland
-Version:	1.0.6
+Version:	1.1.0
 Release:	0
 Summary:	Wayland Compositor Infrastructure
 License:	MIT
@@ -117,5 +117,6 @@ make %{?_smp_mflags}
 %_libdir/libwayland-*.so
 %_libdir/pkgconfig/wayland-*.pc
 %_datadir/aclocal
+%_datadir/man/man3/*
 
 %changelog
