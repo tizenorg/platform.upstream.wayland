@@ -3,7 +3,7 @@ Version:	1.2.0
 Release:	0
 Summary:	Wayland Compositor Infrastructure
 License:	MIT
-Group:		Graphics/Wayland Window System
+Group:		Graphics & UI Framework/Wayland Window System
 URL:		http://wayland.freedesktop.org/
 
 #Git-Clone:	git://anongit.freedesktop.org/wayland/wayland
@@ -17,6 +17,7 @@ BuildRequires:  pkgconfig(libffi)
 BuildRequires:  expat-devel
 BuildRequires:  xz
 BuildRequires:  doxygen
+BuildRequires:  fdupes
 
 %description
 Wayland is a protocol for a compositor to talk to its clients as well
@@ -27,7 +28,7 @@ The clients can be traditional applications, X servers (rootless or
 fullscreen) or other display servers.
 
 %package -n libwayland-client
-Group:		Graphics/Wayland Window System
+Group:		Graphics & UI Framework/Wayland Window System
 Summary:	Wayland core client library
 
 %description -n libwayland-client
@@ -39,7 +40,7 @@ The clients can be traditional applications, X servers (rootless or
 fullscreen) or other display servers.
 
 %package -n libwayland-cursor
-Group:		Graphics/Wayland Window System
+Group:		Graphics & UI Framework/Wayland Window System
 Summary:	Wayland cursor library
 
 %description -n libwayland-cursor
@@ -49,7 +50,7 @@ loads them directly into an shm pool making it easy for the clients
 to get buffer for each cursor image.
 
 %package -n libwayland-server
-Group:		Graphics/Wayland Window System
+Group:		Graphics & UI Framework/Wayland Window System
 Summary:	Wayland core server library
 
 %description -n libwayland-server
@@ -62,7 +63,7 @@ fullscreen) or other display servers.
 
 %package devel
 Summary:	Development files for the Wayland Compositor Infrastructure
-Group:		Development/Libraries
+Group:		Graphics & UI Framework/Development
 Requires:	libwayland-client = %version
 Requires:	libwayland-cursor = %version
 Requires:	libwayland-server = %version
@@ -89,6 +90,7 @@ make %{?_smp_mflags}
 
 %install
 %make_install
+%fdupes -s %buildroot/%_mandir
 
 %post -n libwayland-client -p /sbin/ldconfig
 %postun -n libwayland-client -p /sbin/ldconfig
