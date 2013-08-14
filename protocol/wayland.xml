@@ -853,6 +853,18 @@
       <arg name="class_" type="string"/>
     </request>
 
+    <request name="touch_move">
+      <description summary="start an interactive touch based move">
+	Start a touch-driven move of the surface.
+
+	This request must be used in response to a touch down event.
+	The server may ignore move requests depending on the state of
+	the surface (e.g. fullscreen or maximized).
+      </description>
+      <arg name="seat" type="object" interface="wl_seat" summary="the wl_seat associated with the touch"/>
+      <arg name="serial" type="uint" summary="serial of the implicit grab on the touch"/>
+    </request>
+
     <event name="ping">
       <description summary="ping client">
 	Ping a client to check if it is receiving events and sending
