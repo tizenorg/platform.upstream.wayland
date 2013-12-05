@@ -953,6 +953,58 @@ copy_fds_to_connection(struct wl_closure *closure,
 	return 0;
 }
 
+
+static unsigned int 
+buffersize_for_closure(struct wl_closure *closure)  
+{
+	const struct wl_message *message = closure->message;
+	unsigned int i, count, size;
+	struct argument_details arg;
+	const char *signature;
+	unsigned int buffer_size=0;
+
+	signature = message->signature;
+	count = arg_count_for_signature(signature);
+	for (i = 0; i < count; i++) {
+		signature = get_next_argument(signature, &arg);
+
+		if (arg.type == 'h')
+			continue;
+
+		switch (arg.type) {
+		case 'u':
+		case 'i':
+		case 'f':
+		case 'o':
+		case 'n':
+			buffer_size++;
+			break;
+		case 's':
+			if (closure->args[i].s == NULL) {
+				buffer_size++;
+				break;
+			}
+
+			size = strlen(closure->args[i].s) + 1;
+			buffer_size += (1 + DIV_ROUNDUP(size, sizeof(uint32_t)));
+			break;
+		case 'a':
+			if (closure->args[i].a == NULL) {
+				buffer_size++;
+				break;
+			}
+
+			size = closure->args[i].a->size;
+			buffer_size += (1 + DIV_ROUNDUP(size, sizeof(uint32_t)));
+			break;
+		default:
+			break;
+		}
+	}
+
+	return buffer_size+16;
+}
+
 static int
 serialize_closure(struct wl_closure *closure, uint32_t *buffer,
 		  size_t buffer_count)
@@ -1046,33 +1098,57 @@ overflow:
 int
 wl_closure_send(struct wl_closure *closure, struct wl_connection *connection)
 {
-	uint32_t buffer[256];
 	int size;
+	uint32_t buffer_size;
+	uint32_t* buffer;
+	int result;
 
 	if (copy_fds_to_connection(closure, connection))
 		return -1;
 
-	size = serialize_closure(closure, buffer, 256);
-	if (size < 0)
+	buffer_size = buffersize_for_closure(closure);
+	buffer = malloc(buffer_size * sizeof(uint32_t) );
+	if (buffer == NULL) 
 		return -1;
 
-	return wl_connection_write(connection, buffer, size);
+	size = serialize_closure(closure, buffer, buffer_size);
+	if (size < 0) {
+		free(buffer);
+		return -1;
+	}
+
+	result = wl_connection_write(connection, buffer, size);
+	free(buffer);
+	
+	return result;
 }
 
 int
 wl_closure_queue(struct wl_closure *closure, struct wl_connection *connection)
 {
-	uint32_t buffer[256];
 	int size;
+	uint32_t buffer_size;
+	uint32_t* buffer;
+	int result;
 
 	if (copy_fds_to_connection(closure, connection))
 		return -1;
 
-	size = serialize_closure(closure, buffer, 256);
-	if (size < 0)
+	buffer_size = buffersize_for_closure(closure);
+	buffer = malloc(buffer_size * sizeof(uint32_t) );
+	if (buffer == NULL) 
 		return -1;
 
-	return wl_connection_queue(connection, buffer, size);
+	size = serialize_closure(closure, buffer, buffer_size);
+	if (size < 0) {
+		free(buffer);
+		return -1;
+	}
+
+	result = wl_connection_queue(connection, buffer, size);
+	free(buffer);
+	
+	return result;
 }
 
 void
