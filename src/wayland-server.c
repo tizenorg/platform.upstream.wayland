@@ -1048,9 +1048,10 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 	int name_size;
 	const char *runtime_dir;
 
-	runtime_dir = getenv("XDG_RUNTIME_DIR");
+	if ((runtime_dir = getenv("WAYLAND_DISPLAY_DIR")) == NULL)
+		runtime_dir = getenv("XDG_RUNTIME_DIR");
 	if (!runtime_dir) {
-		wl_log("error: XDG_RUNTIME_DIR not set in the environment\n");
+		wl_log("error: WAYLAND_DISPLAY_DIR or XDG_RUNTIME_DIR not set in the environment\n");
 
 		/* to prevent programs reporting
 		 * "failed to add socket: Success" */

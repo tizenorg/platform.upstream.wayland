@@ -633,10 +633,11 @@ connect_to_socket(const char *name)
 	const char *runtime_dir;
 	int name_size, fd;
 
-	runtime_dir = getenv("XDG_RUNTIME_DIR");
+	if ((runtime_dir = getenv("WAYLAND_DISPLAY_DIR")) == NULL)
+		runtime_dir = getenv("XDG_RUNTIME_DIR");
 	if (!runtime_dir) {
 		fprintf(stderr,
-			"error: XDG_RUNTIME_DIR not set in the environment.\n");
+			"error: WAYLAND_DISPLAY_DIR or XDG_RUNTIME_DIR not set in the environment.\n");
 
 		/* to prevent programs reporting
 		 * "failed to create display: Success" */
