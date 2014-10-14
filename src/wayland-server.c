@@ -39,6 +39,8 @@
 #include <fcntl.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <grp.h>
 #include <ffi.h>
 
 #include "wayland-private.h"
@@ -1055,6 +1057,10 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 	socklen_t size;
 	int name_size;
 	const char *runtime_dir;
+	const char *socket_mode_str;
+	const char *socket_group_str;
+	const struct group *socket_group;
+	unsigned socket_mode;
 
 	runtime_dir = getenv("WAYLAND_SERVER_DIR");
 	if (runtime_dir == NULL)
@@ -1125,6 +1131,18 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 		close(s->fd_lock);
 		free(s);
 		return -1;
+	}
+
+	socket_group_str = getenv("WAYLAND_SERVER_GROUP");
+	if (socket_group_str != NULL) {
+		socket_group = getgrnam(socket_group_str);
+		if (socket_group != NULL)
+			chown(s->addr.sun_path, -1, socket_group->gr_gid);
+	}
+	socket_mode_str = getenv("WAYLAND_SERVER_MODE");
+	if (socket_mode_str != NULL) {
+		if (sscanf(socket_mode_str, "%o", &socket_mode) > 0)
+			chmod(s->addr.sun_path, socket_mode);
 	}
 
 	s->source = wl_event_loop_add_fd(display->loop, s->fd,
