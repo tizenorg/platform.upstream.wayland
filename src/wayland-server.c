@@ -1056,7 +1056,9 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 	int name_size;
 	const char *runtime_dir;
 
-	runtime_dir = getenv("XDG_RUNTIME_DIR");
+	runtime_dir = getenv("WAYLAND_SERVER_DIR");
+	if (runtime_dir == NULL)
+		runtime_dir = getenv("XDG_RUNTIME_DIR");
 	if (!runtime_dir) {
 		wl_log("error: XDG_RUNTIME_DIR not set in the environment\n");
 
