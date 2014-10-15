@@ -39,6 +39,8 @@
 #include <fcntl.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <grp.h>
 #include <ffi.h>
 
 #include "wayland-private.h"
@@ -1055,8 +1057,14 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 	socklen_t size;
 	int name_size;
 	const char *runtime_dir;
+	const char *socket_mode_str;
+	const char *socket_group_str;
+	const struct group *socket_group;
+	unsigned socket_mode;
 
-	runtime_dir = getenv("XDG_RUNTIME_DIR");
+	runtime_dir = getenv("WAYLAND_SERVER_DIR");
+	if (runtime_dir == NULL)
+		runtime_dir = getenv("XDG_RUNTIME_DIR");
 	if (!runtime_dir) {
 		wl_log("error: XDG_RUNTIME_DIR not set in the environment\n");
 
@@ -1085,6 +1093,7 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 	s->addr.sun_family = AF_LOCAL;
 	name_size = snprintf(s->addr.sun_path, sizeof s->addr.sun_path,
 			     "%s/%s", runtime_dir, name) + 1;
+	unsetenv("WAYLAND_SERVER_DIR");
 
 	assert(name_size > 0);
 	if (name_size > (int)sizeof s->addr.sun_path) {
@@ -1115,7 +1124,7 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 		return -1;
 	}
 
-	if (listen(s->fd, 1) < 0) {
+	if (listen(s->fd, 8) < 0) {
 		wl_log("listen() failed with error: %m\n");
 		unlink(s->addr.sun_path);
 		close(s->fd);
@@ -1123,6 +1132,28 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 		close(s->fd_lock);
 		free(s);
 		return -1;
+	}
+
+	socket_group_str = getenv("WAYLAND_SERVER_GROUP");
+	if (socket_group_str != NULL) {
+		socket_group = getgrnam(socket_group_str);
+		if (socket_group != NULL) {
+			if (chown(s->addr.sun_path,
+				-1, socket_group->gr_gid) != 0)
+				wl_log("chown(\"%s\") failed: %s",
+					s->addr.sun_path,
+					strerror(errno));
+		}
+	}
+
+	socket_mode_str = getenv("WAYLAND_SERVER_MODE");
+	if (socket_mode_str != NULL) {
+		if (sscanf(socket_mode_str, "%o", &socket_mode) > 0)
+			if (chmod(s->addr.sun_path, socket_mode) != 0) {
+				wl_log("chmod(\"%s\") failed: %s",
+					s->addr.sun_path,
+					strerror(errno));
+			}
 	}
 
 	s->source = wl_event_loop_add_fd(display->loop, s->fd,
