@@ -1,3 +1,7 @@
+%if "%{profile}" == "ivi"
+%define extra_config_options1 --enable-multiseat
+%endif
+
 Name:		wayland
 Version:	1.7.0
 Release:	0
@@ -83,7 +87,8 @@ to develop applications that require these.
 cp %{SOURCE1001} .
 
 %build
-%reconfigure --disable-static --disable-documentation
+%reconfigure --disable-static --disable-documentation \
+           %{?extra_config_options1:%extra_config_options1}
 make %{?_smp_mflags}
 
 %install

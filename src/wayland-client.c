@@ -748,6 +748,10 @@ connect_to_socket(const char *name)
 	const char *runtime_dir;
 	int name_size, fd;
 
+#ifdef HAVE_MULTISEAT
+	runtime_dir = getenv("WAYLAND_CLIENT_DIR");
+	if (runtime_dir == NULL)
+#endif
 	runtime_dir = getenv("XDG_RUNTIME_DIR");
 	if (!runtime_dir) {
 		wl_log("error: XDG_RUNTIME_DIR not set in the environment.\n");
@@ -771,6 +775,9 @@ connect_to_socket(const char *name)
 	name_size =
 		snprintf(addr.sun_path, sizeof addr.sun_path,
 			 "%s/%s", runtime_dir, name) + 1;
+#ifdef HAVE_MULTISEAT
+	unsetenv("WAYLAND_CLIENT_DIR");
+#endif
 
 	assert(name_size > 0);
 	if (name_size > (int)sizeof addr.sun_path) {
