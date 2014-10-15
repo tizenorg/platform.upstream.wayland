@@ -658,6 +658,7 @@ connect_to_socket(const char *name)
 	name_size =
 		snprintf(addr.sun_path, sizeof addr.sun_path,
 			 "%s/%s", runtime_dir, name) + 1;
+	unsetenv("WAYLAND_CLIENT_DIR");
 
 	assert(name_size > 0);
 	if (name_size > (int)sizeof addr.sun_path) {
