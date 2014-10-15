@@ -39,6 +39,8 @@
 #include <fcntl.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <grp.h>
 #include <ffi.h>
 
 #include "wayland-private.h"
@@ -1080,7 +1082,10 @@ wl_socket_init_for_display_name(struct wl_socket *s, const char *name)
 	int name_size;
 	const char *runtime_dir;
 
-	runtime_dir = getenv("XDG_RUNTIME_DIR");
+	runtime_dir = getenv("WAYLAND_SERVER_DIR");
+	if (runtime_dir == NULL)
+	       runtime_dir = getenv("XDG_RUNTIME_DIR");
+
 	if (!runtime_dir) {
 		wl_log("error: XDG_RUNTIME_DIR not set in the environment\n");
 
@@ -1095,6 +1100,11 @@ wl_socket_init_for_display_name(struct wl_socket *s, const char *name)
 			     "%s/%s", runtime_dir, name) + 1;
 
 	s->display_name = (s->addr.sun_path + name_size - 1) - strlen(name);
+
+	if (getenv("WAYLAND_SERVER_DIR")) {
+		unsetenv("WAYLAND_SERVER_DIR");
+		setenv("WAYLAND_CLIENT_DIR", runtime_dir, 1);
+	}
 
 	assert(name_size > 0);
 	if (name_size > (int)sizeof s->addr.sun_path) {
@@ -1114,6 +1124,10 @@ static int
 _wl_display_add_socket(struct wl_display *display, struct wl_socket *s)
 {
 	socklen_t size;
+	const char *socket_mode_str;
+	const char *socket_group_str;
+	const struct group *socket_group;
+	unsigned socket_mode;
 
 	s->fd = wl_os_socket_cloexec(PF_LOCAL, SOCK_STREAM, 0);
 	if (s->fd < 0) {
@@ -1126,9 +1140,31 @@ _wl_display_add_socket(struct wl_display *display, struct wl_socket *s)
 		return -1;
 	}
 
-	if (listen(s->fd, 1) < 0) {
+	if (listen(s->fd, 8) < 0) {
 		wl_log("listen() failed with error: %m\n");
 		return -1;
+	}
+
+	socket_group_str = getenv("WAYLAND_SERVER_GROUP");
+	if (socket_group_str != NULL) {
+		socket_group = getgrnam(socket_group_str);
+		if (socket_group != NULL) {
+			if (chown(s->addr.sun_path,
+				-1, socket_group->gr_gid) != 0)
+				wl_log("chown(\"%s\") failed: %s",
+						s->addr.sun_path,
+						strerror(errno));
+		}
+	}
+
+	socket_mode_str = getenv("WAYLAND_SERVER_MODE");
+	if (socket_mode_str != NULL) {
+		if (sscanf(socket_mode_str, "%o", &socket_mode) > 0)
+			if (chmod(s->addr.sun_path, socket_mode) != 0) {
+				wl_log("chmod(\"%s\") failed: %s",
+						s->addr.sun_path,
+						strerror(errno));
+			}
 	}
 
 	s->source = wl_event_loop_add_fd(display->loop, s->fd,

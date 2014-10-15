@@ -48,6 +48,8 @@
       <filename>protocol/wayland.xml</filename>.
       This xml is used to generate the function prototypes that can be used by
       clients and compositors.
+      When multiseat is enabled, <filename>protocol/wayland_multiseat.xml</filename>
+      is used.
     </para>
     <para>
       The protocol entry points are generated as inline functions which just
