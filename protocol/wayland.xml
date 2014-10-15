@@ -1652,7 +1652,7 @@
     </request>
   </interface>
 
-  <interface name="wl_output" version="2">
+  <interface name="wl_output" version="3">
     <description summary="compositor output region">
       An output describes part of the compositor geometry.  The
       compositor works in the 'compositor coordinate system' and an
@@ -1789,6 +1789,26 @@
 	a higher detail image.
       </description>
       <arg name="factor" type="int" summary="scaling factor of output"/>
+    </event>
+
+    <!-- Version 3 of additions -->
+
+    <event name="name" since="3">
+      <description summary="name of the output">
+  In a multiseat configuration this can be used by the client to help
+  identify the name of the output and consequently the name can be used to
+  select the output(s) based on the configuration.
+      </description>
+      <arg name="name" type="string"/>
+    </event>
+
+    <event name="seatname" since="3">
+      <description summary="name of the seat the output is constrained to">
+  In a multiseat configuration this can be used by the client to help
+  identify the seat which the given output is constrained to and consequently
+  select the output(s) based on the client own seat.
+      </description>
+      <arg name="name" type="string"/>
     </event>
   </interface>
 

@@ -401,7 +401,7 @@ start_element(void *data, const char *element_name, const char **atts)
 		if (since != NULL) {
 			errno = 0;
 			version = strtol(since, &end, 0);
-			if (errno == EINVAL || end == since || *end != '\0')
+			if (errno != 0 || end == since || *end != '\0')
 				fail(&ctx->loc,
 				     "invalid integer (%s)\n", since);
 		} else {
