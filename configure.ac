@@ -66,6 +66,14 @@ AC_ARG_ENABLE([documentation],
 
 AM_CONDITIONAL(ENABLE_SCANNER, test "x$enable_scanner" = xyes)
 
+AC_ARG_ENABLE([multiseat],
+              [AC_HELP_STRING([--enable-multiseat],
+                              [Enable multiseat feature])],
+              [],
+              [enable_multiseat=no])
+
+AM_CONDITIONAL(HAVE_MULTISEAT, test "x$enable_multiseat" = xyes)
+
 AC_ARG_WITH(icondir, [  --with-icondir=<dir>    Look for cursor icons here],
 		     [  ICONDIR=$withval],
 		     [  ICONDIR=${datadir}/icons])
