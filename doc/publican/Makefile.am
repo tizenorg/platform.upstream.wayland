@@ -93,14 +93,20 @@ publican_targets = $(publican_sources:$(srcdir)/sources/%=$(builddir)/en-US/%) \
 	$(builddir)/en-US/ClientAPI.xml \
 	$(builddir)/en-US/ServerAPI.xml
 
-# The Protocol.xml is purely generated and required before running publican
-$(builddir)/en-US/ProtocolSpec.xml: $(top_srcdir)/protocol/wayland.xml $(srcdir)/protocol-to-docbook.xsl | $(builddir)/en-US
-	$(AM_V_GEN)$(XSLTPROC) $(srcdir)/protocol-to-docbook.xsl \
-		$(top_srcdir)/protocol/wayland.xml > $@
+if HAVE_MULTISEAT
+wayland_api = $(top_srcdir)/protocol/wayland_multiseat.xml
+else
+wayland_api = $(top_srcdir)/protocol/wayland.xml
+endif
 
-$(builddir)/en-US/ProtocolInterfaces.xml: $(top_srcdir)/protocol/wayland.xml $(srcdir)/protocol-interfaces-to-docbook.xsl | $(builddir)/en-US
+# The Protocol.xml is purely generated and required before running publican
+$(builddir)/en-US/ProtocolSpec.xml: $(wayland_api) $(srcdir)/protocol-to-docbook.xsl | $(builddir)/en-US
+	$(AM_V_GEN)$(XSLTPROC) $(srcdir)/protocol-to-docbook.xsl \
+		$(wayland_api) > $@
+
+$(builddir)/en-US/ProtocolInterfaces.xml: $(wayland_api) $(srcdir)/protocol-interfaces-to-docbook.xsl | $(builddir)/en-US
 	$(AM_V_GEN)$(XSLTPROC) $(srcdir)/protocol-interfaces-to-docbook.xsl \
-		$(top_srcdir)/protocol/wayland.xml > $@
+		$(wayland_api) > $@
 
 # * use doxygen's combine.xslt to merge the xml files into one single file
 # * pipe that through the doxygen-to-publican stylesheet
