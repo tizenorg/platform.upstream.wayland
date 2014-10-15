@@ -1,3 +1,7 @@
+%if "%{profile}" == "ivi"
+%define extra_config_options1 --enable-multiseat
+%endif
+
 Name:		wayland
 Version:	1.6.0
 Release:	0
@@ -85,7 +89,8 @@ cp %{SOURCE1001} .
 
 %build
 %autogen
-%configure --disable-static
+%configure --disable-static \
+           %{?extra_config_options1:%extra_config_options1}
 make %{?_smp_mflags}
 
 %install

@@ -9,8 +9,16 @@ dist_aclocal_DATA = wayland-scanner.m4
 
 dist_pkgdata_DATA =				\
 	wayland-scanner.mk			\
-	protocol/wayland.xml			\
+	protocol/wayland.xml    \
 	protocol/wayland.dtd
+
+if HAVE_MULTISEAT
+GCC_CFLAGS += -DHAVE_MULTISEAT
+wayland_api = $(top_srcdir)/protocol/wayland_multiseat.xml
+dist_pkgdata_DATA += protocol/wayland_multiseat.xml
+else
+wayland_api = $(top_srcdir)/protocol/wayland.xml
+endif
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA =
@@ -73,13 +81,13 @@ else
 wayland_scanner = wayland-scanner
 endif
 
-protocol/%-protocol.c : $(top_srcdir)/protocol/%.xml
+protocol/%-protocol.c : $(wayland_api)
 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) code < $< > $@
 
-protocol/%-server-protocol.h : $(top_srcdir)/protocol/%.xml
+protocol/%-server-protocol.h : $(wayland_api)
 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) server-header < $< > $@
 
-protocol/%-client-protocol.h : $(top_srcdir)/protocol/%.xml
+protocol/%-client-protocol.h : $(wayland_api)
 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) client-header < $< > $@
 
 BUILT_SOURCES =					\

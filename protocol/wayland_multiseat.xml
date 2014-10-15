@@ -440,7 +440,7 @@
 	file descriptor.
 
 	The receiving client reads from the read end of the pipe until
-	EOF and then closes its end, at which point the transfer is
+	EOF and the closes its end, at which point the transfer is
 	complete.
       </description>
       <arg name="mime_type" type="string"/>
@@ -517,7 +517,7 @@
 
   </interface>
 
-  <interface name="wl_data_device" version="2">
+  <interface name="wl_data_device" version="1">
     <description summary="data transfer device">
       There is one wl_data_device per seat which can be obtained
       from the global wl_data_device_manager singleton.
@@ -525,11 +525,6 @@
       A wl_data_device provides access to inter-client data transfer
       mechanisms such as copy-and-paste and drag-and-drop.
     </description>
-
-    <enum name="error">
-      <entry name="role" value="0" summary="given wl_surface has another role"/>
-    </enum>
-
     <request name="start_drag">
       <description summary="start drag-and-drop operation">
 	This request asks the compositor to start a drag-and-drop
@@ -550,9 +545,7 @@
 	the top-left corner of the icon surface is placed at the cursor
 	hotspot, but subsequent wl_surface.attach request can move the
 	relative position. Attach requests must be confirmed with
-	wl_surface.commit as usual. The icon surface is given the role of
-	a drag-and-drop icon. If the icon surface already has another role,
-	it raises a protocol error.
+	wl_surface.commit as usual.
 
 	The current and pending input regions of the icon wl_surface are
 	cleared, and wl_surface.set_input_region is ignored until the
@@ -643,23 +636,13 @@
 	immediately before receiving keyboard focus and when a new
 	selection is set while the client has keyboard focus.  The
 	data_offer is valid until a new data_offer or NULL is received
-	or until the client loses keyboard focus.  The client must
-	destroy the previous selection data_offer, if any, upon receiving
-	this event.
+	or until the client loses keyboard focus.
       </description>
       <arg name="id" type="object" interface="wl_data_offer" allow-null="true"/>
     </event>
-
-    <!-- Version 2 additions -->
-
-    <request name="release" type="destructor" since="2">
-      <description summary="destroy data device">
-	This request destroys the data device.
-      </description>
-    </request>
   </interface>
 
-  <interface name="wl_data_device_manager" version="2">
+  <interface name="wl_data_device_manager" version="1">
     <description summary="data transfer interface">
       The wl_data_device_manager is a singleton global object that
       provides access to inter-client data transfer mechanisms such as
@@ -693,15 +676,9 @@
       a basic surface.
     </description>
 
-    <enum name="error">
-      <entry name="role" value="0" summary="given wl_surface has another role"/>
-    </enum>
-
     <request name="get_shell_surface">
       <description summary="create a shell surface from a surface">
-	Create a shell surface for an existing surface. This gives
-	the wl_surface the role of a shell surface. If the wl_surface
-	already has another role, it raises a protocol error.
+	Create a shell surface for an existing surface.
 
 	Only one shell surface can be associated with a given surface.
       </description>
@@ -996,37 +973,8 @@
       local coordinates of the pixel content, in case a buffer_transform
       or a buffer_scale is used.
 
-      A surface without a "role" is fairly useless, a compositor does
-      not know where, when or how to present it. The role is the
-      purpose of a wl_surface. Examples of roles are a cursor for a
-      pointer (as set by wl_pointer.set_cursor), a drag icon
-      (wl_data_device.start_drag), a sub-surface
-      (wl_subcompositor.get_subsurface), and a window as defined by a
-      shell protocol (e.g. wl_shell.get_shell_surface).
-
-      A surface can have only one role at a time. Initially a
-      wl_surface does not have a role. Once a wl_surface is given a
-      role, it is set permanently for the whole lifetime of the
-      wl_surface object. Giving the current role again is allowed,
-      unless explicitly forbidden by the relevant interface
-      specification.
-
-      Surface roles are given by requests in other interfaces such as
-      wl_pointer.set_cursor. The request should explicitly mention
-      that this request gives a role to a wl_surface. Often, this
-      request also creates a new protocol object that represents the
-      role and adds additional functionality to wl_surface. When a
-      client wants to destroy a wl_surface, they must destroy this 'role
-      object' before the wl_surface.
-
-      Destroying the role object does not remove the role from the
-      wl_surface, but it may stop the wl_surface from "playing the role".
-      For instance, if a wl_subsurface object is destroyed, the wl_surface
-      it was created for will be unmapped and forget its position and
-      z-order. It is allowed to create a wl_subsurface for the same
-      wl_surface again, but it is not allowed to use the wl_surface as
-      a cursor (cursor is a different role than sub-surface, and role
-      switching is not allowed).
+      Surfaces are also used for some special purposes, e.g. as
+      cursor images for pointers, drag icons, etc.
     </description>
 
     <enum name="error">
@@ -1414,18 +1362,10 @@
       and scrolling.
     </description>
 
-    <enum name="error">
-      <entry name="role" value="0" summary="given wl_surface has another role"/>
-    </enum>
-
     <request name="set_cursor">
       <description summary="set the pointer surface">
 	Set the pointer surface, i.e., the surface that contains the
-	pointer image (cursor). This request gives the surface the role
-	of a cursor. If the surface already has another role, it raises
-	a protocol error.
-
-	The cursor actually changes only if the pointer
+	pointer image (cursor). This request only takes effect if the pointer
 	focus for this device is one of the requesting client's surfaces
 	or the surface parameter is the current pointer surface. If
 	there was a previous surface set with this request it is
@@ -1751,7 +1691,7 @@
     </request>
   </interface>
 
-  <interface name="wl_output" version="2">
+  <interface name="wl_output" version="3">
     <description summary="compositor output region">
       An output describes part of the compositor geometry.  The
       compositor works in the 'compositor coordinate system' and an
@@ -1890,6 +1830,25 @@
       <arg name="factor" type="int" summary="scaling factor of output"/>
     </event>
 
+    <!-- Version 3 of additions -->
+
+    <event name="name" since="3">
+      <description summary="name of the output">
+  In a multiseat configuration this can be used by the client to help
+  identify the name of the output and consequently the name can be used to
+  select the output(s) based on the configuration.
+      </description>
+      <arg name="name" type="string"/>
+    </event>
+
+    <event name="seatname" since="3">
+      <description summary="name of the seat the output is constrained to">
+  In a multiseat configuration this can be used by the client to help
+  identify the seat which the given output is constrained to and consequently
+  select the output(s) based on the client own seat.
+      </description>
+      <arg name="name" type="string"/>
+    </event>
   </interface>
 
   <interface name="wl_region" version="1">
@@ -1972,9 +1931,9 @@
 	associate it with the given parent surface. This turns a
 	plain wl_surface into a sub-surface.
 
-	The to-be sub-surface must not already have another role, and it
-	must not have an existing wl_subsurface object. Otherwise a protocol
-	error is raised.
+	The to-be sub-surface must not already have a dedicated
+	purpose, like any shell surface type, cursor image, drag icon,
+	or sub-surface. Otherwise a protocol error is raised.
       </description>
 
       <arg name="id" type="new_id" interface="wl_subsurface"
