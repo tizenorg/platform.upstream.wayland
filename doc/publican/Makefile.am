@@ -40,20 +40,26 @@ if HAVE_XSLTPROC
 noinst_DATA = Wayland $(publican_targets)
 pubdir = $(docdir)/Wayland/en-US
 
+if HAVE_MULTISEAT
+wayland_api = $(top_srcdir)/protocol/wayland_multiseat.xml
+else
+wayland_api = $(top_srcdir)/protocol/wayland.xml
+endif
+
 publican_targets = $(publican_sources:$(srcdir)/sources%=$(builddir)/en-US%) \
 	en-US/ProtocolSpec.xml en-US/ProtocolInterfaces.xml \
 	en-US/WaylandClientAPI.xml en-US/WaylandServerAPI.xml
 
 # The Protocol.xml is purely generated and required before running publican
-en-US/ProtocolSpec.xml: $(top_srcdir)/protocol/wayland.xml $(srcdir)/protocol-to-docbook.xsl
+en-US/ProtocolSpec.xml: $(wayland_api) $(srcdir)/protocol-to-docbook.xsl
 	$(AM_V_GEN)$(MKDIR_P) en-US/images
 	$(AM_V_GEN)$(XSLTPROC) $(srcdir)/protocol-to-docbook.xsl \
-		$(top_srcdir)/protocol/wayland.xml > en-US/ProtocolSpec.xml
+		$(wayland_api) > en-US/ProtocolSpec.xml
 
-en-US/ProtocolInterfaces.xml: $(top_srcdir)/protocol/wayland.xml $(srcdir)/protocol-interfaces-to-docbook.xsl
+en-US/ProtocolInterfaces.xml: $(wayland_api) $(srcdir)/protocol-interfaces-to-docbook.xsl
 	$(AM_V_GEN)$(MKDIR_P) en-US/images
 	$(AM_V_GEN)$(XSLTPROC) $(srcdir)/protocol-interfaces-to-docbook.xsl \
-		$(top_srcdir)/protocol/wayland.xml > en-US/ProtocolInterfaces.xml
+		$(wayland_api) > en-US/ProtocolInterfaces.xml
 
 # * we don't want wayland-{server|client}_8h.xml to avoid duplicating output methods,
 #   move it out of the way first.
