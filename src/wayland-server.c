@@ -1137,13 +1137,22 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 	socket_group_str = getenv("WAYLAND_SERVER_GROUP");
 	if (socket_group_str != NULL) {
 		socket_group = getgrnam(socket_group_str);
-		if (socket_group != NULL)
-			chown(s->addr.sun_path, -1, socket_group->gr_gid);
+		if (socket_group != NULL) {
+			if (chown(s->addr.sun_path,
+				-1, socket_group->gr_gid) != 0)
+				wl_log("chown(\"%s\") failed: %s",
+					s->addr.sun_path,
+					strerror(errno));
+		}
 	}
 	socket_mode_str = getenv("WAYLAND_SERVER_MODE");
 	if (socket_mode_str != NULL) {
 		if (sscanf(socket_mode_str, "%o", &socket_mode) > 0)
-			chmod(s->addr.sun_path, socket_mode);
+			if (chmod(s->addr.sun_path, socket_mode) != 0) {
+				wl_log("chmod(\"%s\") failed: %s",
+					s->addr.sun_path,
+					strerror(errno));
+			}
 	}
 
 	s->source = wl_event_loop_add_fd(display->loop, s->fd,
