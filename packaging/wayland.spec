@@ -1,6 +1,6 @@
 Name:		wayland
 Version:	1.5.0
-Release:	2.jl
+Release:	0
 Summary:	Wayland Compositor Infrastructure
 License:	MIT
 Group:		Graphics & UI Framework/Wayland Window System

@@ -1094,6 +1094,7 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 	name_size = snprintf(s->addr.sun_path, sizeof s->addr.sun_path,
 			     "%s/%s", runtime_dir, name) + 1;
 	unsetenv("WAYLAND_SERVER_DIR");
+	setenv("WAYLAND_CLIENT_DIR", runtime_dir, 1);
 
 	assert(name_size > 0);
 	if (name_size > (int)sizeof s->addr.sun_path) {
