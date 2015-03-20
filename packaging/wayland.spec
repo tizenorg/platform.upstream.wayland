@@ -19,9 +19,6 @@ BuildRequires:	libtool >= 2.2
 BuildRequires:	pkgconfig
 BuildRequires:  pkgconfig(libffi)
 BuildRequires:  expat-devel
-BuildRequires:  xz
-BuildRequires:  doxygen
-BuildRequires:  fdupes
 
 %description
 Wayland is a protocol for a compositor to talk to its clients as well
@@ -88,14 +85,12 @@ to develop applications that require these.
 cp %{SOURCE1001} .
 
 %build
-%autogen
-%configure --disable-static \
+%reconfigure --disable-static --disable-documentation \
            %{?extra_config_options1:%extra_config_options1}
 make %{?_smp_mflags}
 
 %install
 %make_install
-%fdupes -s %buildroot/%_mandir
 
 %post -n libwayland-client -p /sbin/ldconfig
 %postun -n libwayland-client -p /sbin/ldconfig
@@ -131,7 +126,6 @@ make %{?_smp_mflags}
 %_libdir/pkgconfig/wayland-*.pc
 %_datadir/wayland/wayland*
 %_datadir/aclocal
-%_datadir/man/man3/*
 %doc README TODO
 
 %changelog
