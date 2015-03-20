@@ -20,7 +20,6 @@ BuildRequires:	pkgconfig
 BuildRequires:  pkgconfig(libffi)
 BuildRequires:  expat-devel
 BuildRequires:  xz
-BuildRequires:  doxygen
 BuildRequires:  fdupes
 
 %description
@@ -88,8 +87,7 @@ to develop applications that require these.
 cp %{SOURCE1001} .
 
 %build
-%autogen
-%configure --disable-static \
+%reconfigure --disable-static --disable-documentation \
            %{?extra_config_options1:%extra_config_options1}
 make %{?_smp_mflags}
 
@@ -131,7 +129,6 @@ make %{?_smp_mflags}
 %_libdir/pkgconfig/wayland-*.pc
 %_datadir/wayland/wayland*
 %_datadir/aclocal
-%_datadir/man/man3/*
 %doc README TODO
 
 %changelog
