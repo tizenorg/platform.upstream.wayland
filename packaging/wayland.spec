@@ -1,5 +1,5 @@
 Name:		wayland
-Version:	1.7.0
+Version:	1.8.1
 Release:	0
 Summary:	Wayland Compositor Infrastructure
 License:	MIT
