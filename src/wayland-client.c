@@ -44,6 +44,8 @@
 #include "wayland-client.h"
 #include "wayland-private.h"
 
+#define FIX_WAYLAND_CLIENT_FD_POOLING_BUG
+
 /** \cond */
 
 enum wl_proxy_flag {
@@ -941,6 +943,9 @@ sync_callback(void *data, struct wl_callback *callback, uint32_t serial)
 {
 	int *done = data;
 
+#ifdef FIX_WAYLAND_CLIENT_FD_POOLING_BUG
+	if (done)
+#endif
 	*done = 1;
 	wl_callback_destroy(callback);
 }
@@ -1616,6 +1621,21 @@ wl_display_dispatch_queue_pending(struct wl_display *display,
 	ret = dispatch_queue(display, queue);
 
 	pthread_mutex_unlock(&display->mutex);
+
+#ifdef FIX_WAYLAND_CLIENT_FD_POOLING_BUG
+	/* Workaround solution until resolving the below bug.
+	 * https://bugs.freedesktop.org/show_bug.cgi?id=91273
+	 * If default_queue is not empty, forcely awake others from poll waiting.
+	 */
+	if (&display->default_queue != queue)
+		if (!wl_list_empty(&display->default_queue.event_list)) {
+			printf("@@@ %s(%d) length(%d)\n", __FUNCTION__, __LINE__, wl_list_length(&display->default_queue.event_list));
+			struct wl_callback *callback;
+			callback = wl_display_sync(display);
+			if (callback)
+				wl_callback_add_listener(callback, &sync_listener, NULL);
+		}
+#endif
 
 	return ret;
 }
