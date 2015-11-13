@@ -38,6 +38,8 @@ wl_os_epoll_create_cloexec(void);
 int
 wl_os_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 
+int
+wl_os_socket_check_cloexec(int fd);
 
 /*
  * The following are for wayland-os.c and the unit tests.
