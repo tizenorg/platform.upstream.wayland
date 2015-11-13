@@ -24,6 +24,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -66,6 +67,17 @@ wl_os_socket_cloexec(int domain, int type, int protocol)
 		return -1;
 
 	fd = socket(domain, type, protocol);
+	return set_cloexec_or_close(fd);
+}
+
+int
+wl_os_socket_check_cloexec(int fd)
+{
+	struct stat buf;
+
+	if (fd < 0 || fstat(fd, &buf) < 0 || !S_ISSOCK(buf.st_mode))
+		return -1;
+
 	return set_cloexec_or_close(fd);
 }
 
