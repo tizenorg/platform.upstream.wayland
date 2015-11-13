@@ -121,8 +121,6 @@ struct wl_resource {
 	wl_dispatcher_func_t dispatcher;
 };
 
-static int debug_server = 0;
-
 WL_EXPORT void
 wl_resource_post_event_array(struct wl_resource *resource, uint32_t opcode,
 			     union wl_argument *args)
