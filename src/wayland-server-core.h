@@ -91,6 +91,7 @@ struct wl_listener *wl_event_loop_get_destroy_listener(
 struct wl_display *wl_display_create(void);
 void wl_display_destroy(struct wl_display *display);
 struct wl_event_loop *wl_display_get_event_loop(struct wl_display *display);
+int wl_display_add_socket_fd(struct wl_display *display, const char *name, int sock_fd);
 int wl_display_add_socket(struct wl_display *display, const char *name);
 const char *wl_display_add_socket_auto(struct wl_display *display);
 void wl_display_terminate(struct wl_display *display);

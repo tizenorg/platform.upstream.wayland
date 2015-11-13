@@ -1129,9 +1129,12 @@ _wl_display_add_socket(struct wl_display *display, struct wl_socket *s)
 {
 	socklen_t size;
 
-	s->fd = wl_os_socket_cloexec(PF_LOCAL, SOCK_STREAM, 0);
-	if (s->fd < 0) {
-		return -1;
+	if (s->fd == -1)
+	{
+		s->fd = wl_os_socket_cloexec(PF_LOCAL, SOCK_STREAM, 0);
+		if (s->fd < 0) {
+			return -1;
+		}
 	}
 
 	size = offsetof (struct sockaddr_un, sun_path) + strlen(s->addr.sun_path);
@@ -1250,6 +1253,41 @@ wl_display_add_socket(struct wl_display *display, const char *name)
 
 	return 0;
 }
+
+WL_EXPORT int
+wl_display_add_socket_fd(struct wl_display *display, const char *name, int sock_fd)
+{
+	struct wl_socket *s;
+
+	s = wl_socket_alloc();
+	if (s == NULL)
+		return -1;
+
+	if (name == NULL)
+		name = getenv("WAYLAND_DISPLAY");
+	if (name == NULL)
+		name = "wayland-0";
+
+	if (wl_socket_init_for_display_name(s, name) < 0) {
+		wl_socket_destroy(s);
+		return -1;
+	}
+
+	if (wl_socket_lock(s) < 0) {
+		wl_socket_destroy(s);
+		return -1;
+	}
+
+	s->fd = sock_fd;
+
+	if (_wl_display_add_socket(display, s) < 0) {
+		wl_socket_destroy(s);
+		return -1;
+	}
+
+	return 0;
+}
+
 
 WL_EXPORT void
 wl_display_add_destroy_listener(struct wl_display *display,
