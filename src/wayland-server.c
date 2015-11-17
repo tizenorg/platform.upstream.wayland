@@ -1290,30 +1290,6 @@ wl_display_add_socket_fd(struct wl_display *display, int sock_fd)
 	return 0;
 }
 
-/** Add a socket to Wayland display for the clients to connect.
- *
- * \param display Wayland display to which the socket should be added.
- * \param name Name of the Unix socket.
- * \return 0 if success. -1 if failed.
- *
- * This adds a Unix socket to Wayland display which can be used by clients to
- * connect to Wayland display.
- *
- * If NULL is passed as name, then it would look for WAYLAND_DISPLAY env
- * variable for the socket name. If WAYLAND_DISPLAY is not set, then default
- * wayland-0 is used.
- *
- * The Unix socket will be created in the directory pointed to by environment
- * variable XDG_RUNTIME_DIR. If XDG_RUNTIME_DIR is not set, then this function
- * fails and returns -1.
- *
- * The length of socket path, i.e., the path set in XDG_RUNTIME_DIR and the
- * socket name, must not exceed the maximum length of a Unix socket path.
- * The function also fails if the user do not have write permission in the
- * XDG_RUNTIME_DIR path or if the socket name is already in use.
- *
- * \memberof wl_display
- */
 WL_EXPORT int
 wl_display_add_socket(struct wl_display *display, const char *name)
 {
