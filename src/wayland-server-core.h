@@ -400,6 +400,12 @@ wl_shm_buffer_create(struct wl_client *client,
 
 void wl_log_set_handler_server(wl_log_func_t handler);
 
+struct wl_list *wl_display_get_client_list(struct wl_display *display);
+struct wl_map *wl_client_get_resources(struct wl_client *client);
+struct wl_interface *wl_resource_get_interface(struct wl_resource *resource);
+struct wl_client *wl_client_from_link(struct wl_list *link);
+struct wl_list *wl_client_get_link(struct wl_client *client);
+
 #ifdef  __cplusplus
 }
 #endif
