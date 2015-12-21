@@ -140,7 +140,8 @@ TESTS =						\
 	signal-test				\
 	resources-test				\
 	message-test				\
-	headers-test
+	headers-test				\
+	clients-resource-test
 
 if ENABLE_CPP_TEST
 TESTS += cpp-compile-test
@@ -194,6 +195,8 @@ signal_test_SOURCES = tests/signal-test.c
 signal_test_LDADD = libtest-runner.la
 resources_test_SOURCES = tests/resources-test.c
 resources_test_LDADD = libtest-runner.la
+clients_resource_test_SOURCES = tests/clients-resource-test.c
+clients_resource_test_LDADD = libtest-runner.la
 message_test_SOURCES = tests/message-test.c
 message_test_LDADD = libtest-runner.la
 headers_test_SOURCES = tests/headers-test.c \
