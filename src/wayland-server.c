@@ -1127,12 +1127,8 @@ _wl_display_add_socket(struct wl_display *display, struct wl_socket *s)
 {
 	socklen_t size;
 
-	if (s->fd == -1) {
-		s->fd = wl_os_socket_cloexec(PF_LOCAL, SOCK_STREAM, 0);
-		if (s->fd < 0) {
-			return -1;
-		}
-	} else if (wl_os_socket_check_cloexec(s->fd) < 0) {
+	s->fd = wl_os_socket_cloexec(PF_LOCAL, SOCK_STREAM, 0);
+	if (s->fd < 0) {
 		return -1;
 	}
 
@@ -1159,7 +1155,7 @@ _wl_display_add_socket(struct wl_display *display, struct wl_socket *s)
 }
 
 WL_EXPORT const char *
-wl_display_add_socket_fd_auto(struct wl_display *display, int sock_fd)
+wl_display_add_socket_auto(struct wl_display *display)
 {
 	struct wl_socket *s;
 	int displayno = 0;
@@ -1183,8 +1179,6 @@ wl_display_add_socket_fd_auto(struct wl_display *display, int sock_fd)
 		if (wl_socket_lock(s) < 0)
 			continue;
 
-		s->fd = sock_fd;
-
 		if (_wl_display_add_socket(display, s) < 0) {
 			wl_socket_destroy(s);
 			return NULL;
@@ -1197,12 +1191,6 @@ wl_display_add_socket_fd_auto(struct wl_display *display, int sock_fd)
 	wl_socket_destroy(s);
 	errno = EINVAL;
 	return NULL;
-}
-
-WL_EXPORT const char *
-wl_display_add_socket_auto(struct wl_display *display)
-{
-	return wl_display_add_socket_fd_auto(display, -1);
 }
 
 /** Add a socket to Wayland display for the clients to connect.
@@ -1230,7 +1218,7 @@ wl_display_add_socket_auto(struct wl_display *display)
  * \memberof wl_display
  */
 WL_EXPORT int
-wl_display_add_socket_fd(struct wl_display *display, const char *name, int sock_fd)
+wl_display_add_socket(struct wl_display *display, const char *name)
 {
 	struct wl_socket *s;
 
@@ -1253,20 +1241,12 @@ wl_display_add_socket_fd(struct wl_display *display, const char *name, int sock_
 		return -1;
 	}
 
-	s->fd = sock_fd;
-
 	if (_wl_display_add_socket(display, s) < 0) {
 		wl_socket_destroy(s);
 		return -1;
 	}
 
 	return 0;
-}
-
-WL_EXPORT int
-wl_display_add_socket(struct wl_display *display, const char *name)
-{
-	return wl_display_add_socket_fd(display, name, -1);
 }
 
 WL_EXPORT void
