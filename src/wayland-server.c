@@ -1436,6 +1436,18 @@ wl_client_get_resources(struct wl_client *client)
 	return &client->objects;
 }
 
+WL_EXPORT struct wl_connection *
+wl_client_get_connection(struct wl_client *client)
+{
+	return client->connection;
+}
+
+WL_EXPORT int
+wl_client_connection_get_fd(struct wl_connection *connection)
+{
+	return wl_connection_get_fd(connection);
+}
+
 /**
  * Get list of additional wl_shm pixel formats
  *

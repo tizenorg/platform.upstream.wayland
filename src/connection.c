@@ -201,6 +201,12 @@ wl_connection_destroy(struct wl_connection *connection)
 	return fd;
 }
 
+int
+wl_connection_get_fd(struct wl_connection *connection)
+{
+	return connection->fd;
+}
+
 void
 wl_connection_copy(struct wl_connection *connection, void *data, size_t size)
 {

@@ -414,6 +414,12 @@ wl_display_get_client_list(struct wl_display *display);
 struct wl_map *
 wl_client_get_resources(struct wl_client *client);
 
+struct wl_connection *
+wl_client_get_connection(struct wl_client *client);
+
+int
+wl_client_connection_get_fd(struct wl_connection *connection);
+
 #ifdef  __cplusplus
 }
 #endif
