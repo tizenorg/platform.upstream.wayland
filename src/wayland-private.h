@@ -97,6 +97,9 @@ int wl_connection_write(struct wl_connection *connection, const void *data, size
 int wl_connection_queue(struct wl_connection *connection,
 			const void *data, size_t count);
 
+int
+wl_connection_get_fd(struct wl_connection *connection);
+
 struct wl_closure {
 	int count;
 	const struct wl_message *message;
