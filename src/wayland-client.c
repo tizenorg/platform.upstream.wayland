@@ -77,6 +77,10 @@ struct wl_event_queue {
 	struct wl_display *display;
 };
 
+struct wl_thread_data {
+	int reader_count_in_thread;
+};
+
 struct wl_display {
 	struct wl_proxy proxy;
 	struct wl_connection *connection;
@@ -107,6 +111,8 @@ struct wl_display {
 	int reader_count;
 	uint32_t read_serial;
 	pthread_cond_t reader_cond;
+
+	pthread_key_t thread_data_key;
 };
 
 /** \endcond */
@@ -783,6 +789,30 @@ wl_proxy_marshal_array(struct wl_proxy *proxy, uint32_t opcode,
 }
 
 static void
+destroy_thread_data(void *data)
+{
+	struct wl_thread_data *thread_data = data;
+
+	free(thread_data);
+}
+
+static struct wl_thread_data*
+get_thread_data(struct wl_display *display)
+{
+	struct wl_thread_data *thread_data;
+
+	thread_data = pthread_getspecific(display->thread_data_key);
+	if (!thread_data) {
+		thread_data = zalloc(sizeof *thread_data);
+		if (!thread_data)
+			return NULL;
+		pthread_setspecific(display->thread_data_key, thread_data);
+	}
+
+	return thread_data;
+}
+
+static void
 display_handle_error(void *data,
 		     struct wl_display *display, void *object,
 		     uint32_t code, const char *message)
@@ -889,6 +919,7 @@ WL_EXPORT struct wl_display *
 wl_display_connect_to_fd(int fd)
 {
 	struct wl_display *display;
+	struct wl_thread_data *thread_data;
 	const char *debug;
 
 	debug = getenv("WAYLAND_DEBUG");
@@ -943,6 +974,15 @@ wl_display_connect_to_fd(int fd)
 	display->connection = wl_connection_create(display->fd);
 	if (display->connection == NULL)
 		goto err_connection;
+
+	if (pthread_key_create(&display->thread_data_key, destroy_thread_data) < 0)
+		goto err_connection;
+
+	thread_data = get_thread_data(display);
+	if (!thread_data)
+		goto err_connection;
+
+	thread_data->reader_count_in_thread = 0;
 
 	return display;
 
@@ -1007,6 +1047,12 @@ wl_display_connect(const char *name)
 WL_EXPORT void
 wl_display_disconnect(struct wl_display *display)
 {
+	struct wl_thread_data *thread_data;
+
+	thread_data = get_thread_data(display);
+	free(thread_data);
+	pthread_key_delete(display->thread_data_key);
+
 	wl_connection_destroy(display->connection);
 	wl_map_release(&display->objects);
 	wl_event_queue_release(&display->default_queue);
@@ -1281,9 +1327,14 @@ dispatch_event(struct wl_display *display, struct wl_event_queue *queue)
 static int
 read_events(struct wl_display *display)
 {
+	struct wl_thread_data *thread_data;
 	int total, rem, size;
 	uint32_t serial;
 
+	thread_data = get_thread_data(display);
+	assert(thread_data);
+
+	thread_data->reader_count_in_thread--;
 	display->reader_count--;
 	if (display->reader_count == 0) {
 		total = wl_connection_read(display->connection);
@@ -1292,6 +1343,9 @@ read_events(struct wl_display *display)
 				/* we must wake up threads whenever
 				 * the reader_count dropped to 0 */
 				display_wakeup_threads(display);
+
+				if (thread_data->reader_count_in_thread > 0)
+					display->reader_count++;
 
 				return 0;
 			}
@@ -1330,15 +1384,31 @@ read_events(struct wl_display *display)
 		}
 	}
 
+	/* If reader_count_in_thread > 0, it means that this thread is still polling
+	 * in somewhere. So inclease +1 for it.
+	 */
+	if (thread_data->reader_count_in_thread > 0)
+		display->reader_count++;
+
 	return 0;
 }
 
 static void
 cancel_read(struct wl_display *display)
 {
+	struct wl_thread_data *thread_data;
+
+	thread_data = get_thread_data(display);
+	assert(thread_data);
+
+	thread_data->reader_count_in_thread--;
 	display->reader_count--;
+
 	if (display->reader_count == 0)
 		display_wakeup_threads(display);
+
+	if (thread_data->reader_count_in_thread > 0)
+		display->reader_count++;
 }
 
 /** Read events from display file descriptor
@@ -1495,7 +1565,16 @@ wl_display_prepare_read_queue(struct wl_display *display,
 		errno = EAGAIN;
 		ret = -1;
 	} else {
-		display->reader_count++;
+		struct wl_thread_data *thread_data;
+
+		thread_data = get_thread_data(display);
+		assert(thread_data);
+
+	/* increase +1 per thread */
+		if (thread_data->reader_count_in_thread == 0)
+			display->reader_count++;
+
+		thread_data->reader_count_in_thread++;
 		ret = 0;
 	}
 
