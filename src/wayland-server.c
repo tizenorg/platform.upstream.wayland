@@ -121,6 +121,22 @@ struct wl_resource {
 	wl_dispatcher_func_t dispatcher;
 };
 
+typedef void (*wl_server_debug_func_ptr)(struct wl_closure *closure,
+	struct wl_resource *resource, int send);
+
+wl_server_debug_func_ptr wl_server_debug_func = NULL;
+
+WL_EXPORT wl_server_debug_func_ptr
+wl_debug_server_debug_func_set(wl_server_debug_func_ptr debug_func)
+{
+	wl_server_debug_func_ptr old_debug_func;
+
+	old_debug_func = wl_server_debug_func;
+	wl_server_debug_func = debug_func;
+
+	return old_debug_func;
+}
+
 WL_EXPORT void
 wl_resource_post_event_array(struct wl_resource *resource, uint32_t opcode,
 			     union wl_argument *args)
@@ -138,6 +154,9 @@ wl_resource_post_event_array(struct wl_resource *resource, uint32_t opcode,
 
 	if (wl_closure_send(closure, resource->client->connection))
 		resource->client->error = 1;
+
+	if (wl_server_debug_func)
+		wl_server_debug_func(closure, resource, true);
 
 	if (debug_server)
 		wl_closure_print(closure, object, true);
@@ -178,6 +197,9 @@ wl_resource_queue_event_array(struct wl_resource *resource, uint32_t opcode,
 
 	if (wl_closure_queue(closure, resource->client->connection))
 		resource->client->error = 1;
+
+	if (wl_server_debug_func)
+		wl_server_debug_func(closure, resource, true);
 
 	if (debug_server)
 		wl_closure_print(closure, object, true);
@@ -326,6 +348,9 @@ wl_client_connection_data(int fd, uint32_t mask, void *data)
 			wl_closure_destroy(closure);
 			break;
 		}
+
+		if (wl_server_debug_func)
+			wl_server_debug_func(closure, resource, false);
 
 		if (debug_server)
 			wl_closure_print(closure, object, false);
