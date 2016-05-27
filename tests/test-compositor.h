@@ -25,6 +25,7 @@
 
 #include <unistd.h>
 
+#include "wayland-private.h"
 #include "wayland-server.h"
 #include "wayland-client.h"
 
