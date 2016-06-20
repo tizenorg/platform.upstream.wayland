@@ -122,7 +122,30 @@ struct wl_resource {
 };
 
 wl_server_debug_func_ptr wl_server_debug_func = NULL;
+#if 0
+WL_EXPORT void
+wl_debug_get_global_resources(struct wl_display *display)
+{
+	struct wl_resource *registry_resource;
+	struct wl_global *global;
+	int i;
 
+	fprintf(stderr, "[JEON] call wl_debug_get_global_resources\n");
+
+	wl_list_for_each(global, &display->global_list, link)
+	{
+		fprintf(stderr, "[JEON] name: %d, interface_name: %s, version: %d\n", global->name, global->interface->name, global->version);
+		for (i=0; i<global->interface->method_count; i++)
+		{
+			fprintf(stderr, "[JEON] method[%d] name: %s, signature: %s\n", i, global->interface->methods[i].name, global->interface->methods[i].signature);
+		}
+		for (i=0; i<global->interface->event_count; i++)
+		{
+			fprintf(stderr, "[JEON] event[%d] name: %s, signature: %s\n", i, global->interface->events[i].name, global->interface->events[i].signature);
+		}
+	}
+}
+#endif
 WL_EXPORT wl_server_debug_func_ptr
 wl_debug_server_debug_func_set(wl_server_debug_func_ptr debug_func)
 {
@@ -1037,6 +1060,63 @@ wl_global_destroy(struct wl_global *global)
 	free(global);
 }
 
+WL_EXPORT struct wl_interface *
+wl_global_get_interface(struct wl_global *global)
+{
+	return global->interface;
+}
+
+WL_EXPORT struct wl_global *
+wl_global_list_get_global(struct wl_list *list, int idx)
+{
+	int i = 0;
+	struct wl_global *global;
+
+	wl_list_for_each(global, list, link)
+	{
+		if (idx == i) break;
+		i++;
+	}
+
+	return global;
+}
+
+WL_EXPORT const char *
+wl_interface_get_name(struct wl_interface *interface)
+{
+	return interface->name;
+}
+
+WL_EXPORT int
+wl_interface_get_method_count(struct wl_interface *interface)
+{
+	return interface->method_count;
+}
+
+WL_EXPORT const struct wl_message *
+wl_interface_get_methods(struct wl_interface *interface)
+{
+	return interface->methods;
+}
+
+WL_EXPORT int
+wl_interface_get_event_count(struct wl_interface *interface)
+{
+	return interface->event_count;
+}
+
+WL_EXPORT const struct wl_message *
+wl_interface_get_events(struct wl_interface *interface)
+{
+	return interface->events;
+}
+
+WL_EXPORT const char *
+wl_message_get_name(const struct wl_message *message)
+{
+	return message->name;
+}
+
 /** Get the current serial number
  *
  * \param display The display object
@@ -1073,6 +1153,12 @@ WL_EXPORT struct wl_event_loop *
 wl_display_get_event_loop(struct wl_display *display)
 {
 	return display->loop;
+}
+
+WL_EXPORT struct wl_list *
+wl_display_get_global_list(struct wl_display *display)
+{
+	return &display->global_list;
 }
 
 WL_EXPORT void

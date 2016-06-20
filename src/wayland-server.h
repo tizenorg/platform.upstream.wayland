@@ -92,8 +92,32 @@ wl_display_remove_global(struct wl_display *display,
 typedef void (*wl_server_debug_func_ptr)(struct wl_closure *closure,
 	struct wl_resource *resource, int send);
 
-wl_server_debug_func_ptr
-wl_debug_server_debug_func_set(wl_server_debug_func_ptr debug_func);
+struct wl_list *
+wl_display_get_global_list(struct wl_display *display);
+
+struct wl_interface *
+wl_global_get_interface(struct wl_global *global);
+
+const char *
+wl_interface_get_name(struct wl_interface *interface);
+
+int
+wl_interface_get_method_count(struct wl_interface *interface);
+
+const struct wl_message *
+wl_interface_get_methods(struct wl_interface *interface);
+
+int
+wl_interface_get_event_count(struct wl_interface *interface);
+
+const struct wl_message *
+wl_interface_get_events(struct wl_interface *interface);
+
+const char *
+wl_message_get_name(const struct wl_message *message);
+
+struct wl_global *
+wl_global_list_get_global(struct wl_list *list, int idx);
 
 #ifdef  __cplusplus
 }
