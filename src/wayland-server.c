@@ -600,7 +600,9 @@ destroy_resource(void *element, void *data)
 
 	wl_signal_emit(&resource->destroy_signal, resource);
 
-	flags = wl_map_lookup_flags(&client->objects, resource->object.id);
+        if (client)
+          flags = wl_map_lookup_flags(&client->objects, resource->object.id);
+
 	if (resource->destroy)
 		resource->destroy(resource);
 
